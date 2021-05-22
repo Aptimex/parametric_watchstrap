@@ -3,7 +3,7 @@ e = 0.01;
 
 l = 100;
 l2 = 65;
-w = 18.5;
+w = 18;
 h = 1;
 
 numHoles = 10;
@@ -22,13 +22,13 @@ filamentDia = 2; //extra space to rotate freely
 loopSlotLen = 3;
 
 //long strap patter offsets
-p_l_off_y = 32.5;
+p_l_off_y = 32.2;
 p_l_off_x = .4;
 p_l_extra_y = 0;
 p_l_extra_x = 1.5;
 
 //short strap patter offsets
-p_s_off_y = 10;
+p_s_off_y = 9.5;
 p_s_off_x = -1.1;
 p_s_extra_y = 0;
 p_s_extra_x = 0;
@@ -162,6 +162,7 @@ module shortStrapPattern() {
 
 module buckle() {
     side = w+3*2;
+    width=w+.5;
     
     //calc curve radius from circle chord len and height
     curveH = 2;
@@ -175,8 +176,8 @@ module buckle() {
         }
         translate([0, 0, -curveR]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true); //form bottom curve
         
-        cube(size=[w-2, w, 10], center=true); //center cutout
-        translate([-w/2, 0, 1+h/2]) cube(size=[2+e, latchWidth+.5, latchThick+1], center=true); //latch groove
+        cube(size=[width-2, width, 10], center=true); //center cutout
+        translate([-width/2, 0, 1+h/2]) cube(size=[2+e, latchWidth+.5, latchThick+1], center=true); //latch groove
         rotate([90, 0, 0])
             cylinder(d=2, h=side+e, center=true); //bar hole
     }
@@ -190,7 +191,7 @@ module buckle() {
             cylinder(d=2, h=side+e, center=true); //axle hole
         rotate([90, 0, 0])
             cylinder(d=1.5, h=side+e, center=true); //axle push-out hole
-        cube(size=[w-2, w, 10], center=true); //center cutout
+        cube(size=[width-2, width, 10], center=true); //center cutout
     }
 }
 
