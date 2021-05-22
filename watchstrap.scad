@@ -1,12 +1,12 @@
 $fn = 32;
 e = 0.01;
 
-l = 100;
+l = 130;
 l2 = 65;
 w = 18;
 h = 1;
 
-numHoles = 10;
+numHoles = 15;
 holeSpacing = 3;
 holeW = 2;
 holeL = 6;
@@ -21,17 +21,20 @@ dia = barDia + loopThick*2;
 filamentDia = 2; //extra space to rotate freely
 loopSlotLen = 3;
 
+pattern=true;
+border = true;
+
 //long strap patter offsets
-p_l_off_y = 32.2;
-p_l_off_x = .4;
-p_l_extra_y = 0;
-p_l_extra_x = 1.5;
+p_l_off_y = -38;
+p_l_off_x = -51;
+p_l_len_y = 100;
+p_l_len_x = p_l_len_y;
 
 //short strap patter offsets
-p_s_off_y = 9.5;
-p_s_off_x = -1.1;
-p_s_extra_y = 0;
-p_s_extra_x = 0;
+p_s_off_y = p_l_off_y;
+p_s_off_x = -.5;
+p_s_len_y = p_l_len_y;
+p_s_len_x = p_s_len_y;
 
 border_height = .6;
 
@@ -107,18 +110,26 @@ module longStrap(noLoop=false) {
 module longStrapPattern() {
     longStrap();
     
-    //add pattern
-    intersection() {
-        scale([1, 1, 5]) longStrap(noLoop=true);
-        resize([(l+w/2) + p_l_extra_x, (l+w/2) + p_l_extra_y, 0]) translate([p_l_off_x, -(l+w/2)/2 + p_l_off_y, border_height/2]) linear_extrude(height=h+border_height, center=true)
-            import("circuit-board.svg");
+    if (pattern) {
+        //add pattern
+        intersection() {
+            scale([1, 1, 5]) longStrap(noLoop=true);
+            translate([p_l_off_x, p_l_off_y-w/2, border_height/2]) resize([p_l_len_x, p_l_len_y, 0]) linear_extrude(height=h+border_height, center=true)
+                import("circuit-board.svg");
+        }
+        //test pattern
+        //translate([p_l_off_x, p_l_off_y-w/2, border_height/2]) resize([p_l_len_x, p_l_len_y, 0]) linear_extrude(height=h+border_height, center=true)
+            //import("circuit-board.svg");
     }
     
-    //add border
-    difference() {
-        translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody();
-        translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody();
+    if (border) {
+        //add border
+        difference() {
+            translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody();
+            translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody();
+        }
     }
+    
     
 }
 
@@ -146,18 +157,23 @@ module shortStrap(noLoop=false) {
 module shortStrapPattern() {
     shortStrap();
     
-    //add pattern
-    intersection() {
-        scale([1, 1, 5]) shortStrap(noLoop=true);
-        resize([(l+w/2) + p_s_extra_x, (l+w/2) + p_s_extra_y, 0]) translate([p_s_off_x, -(l+w/2)/2 + p_s_off_y, border_height/2]) linear_extrude(height=h+border_height, center=true)
-            import("circuit-board.svg");
+    if (pattern) {
+        //add pattern
+        intersection() {
+            scale([1, 1, 5]) shortStrap(noLoop=true);
+            translate([p_s_off_x, p_s_off_y-w/2, border_height/2]) resize([p_s_len_x, p_s_len_y, 0]) linear_extrude(height=h+border_height, center=true)
+                import("circuit-board.svg");
+        }
     }
     
-    //add border
-    difference() {
-        translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody(long=false);
-        translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody(long=false);
+    if (border) {
+        //add border
+        difference() {
+            translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody(long=false);
+            translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody(long=false);
+        }
     }
+    
 }
 
 module buckle() {
@@ -167,12 +183,13 @@ module buckle() {
     //calc curve radius from circle chord len and height
     curveH = 2;
     curveR = (w+3)*(w+3)/(8*curveH) + curveH/2;
+    curveTopR= curveR+0;
     
     //main body
     difference() {
         intersection() { //curved body top
             cube(size=[side, side, h+3], center=true);
-            translate([0, 0, -curveR+curveH+1]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true);
+            translate([0, 0, -curveTopR+curveH+1]) rotate([90, 0, 0])  cylinder(r=curveTopR, h=side+e, center=true);
         }
         translate([0, 0, -curveR]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true); //form bottom curve
         
@@ -214,8 +231,8 @@ module latch() {
 translate([30, 0, 0]) longStrapPattern();
 translate([0, w*2, 0]) shortStrapPattern();
 
-buckle();
-latch();
+//buckle();
+//latch();
 
 
 
