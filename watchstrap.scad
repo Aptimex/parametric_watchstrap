@@ -21,6 +21,20 @@ dia = barDia + loopThick*2;
 filamentDia = 2; //extra space to rotate freely
 loopSlotLen = 3;
 
+//long strap patter offsets
+p_l_off_y = 32.5;
+p_l_off_x = .4;
+p_l_extra_y = 0;
+p_l_extra_x = 1.5;
+
+//short strap patter offsets
+p_s_off_y = 10;
+p_s_off_x = -1.1;
+p_s_extra_y = 0;
+p_s_extra_x = 0;
+
+border_height = .6;
+
 module loophole(innerDia = barDia) {
     translate([0, 0, dia/2 - h/2])
     rotate([90, 0, 0])
@@ -61,7 +75,7 @@ module strapBody(long=true) {
         translate([l/2, 0, 0]) cube(size=[l, w, h], center=true);
         
         //strap end
-        translate([l, 0, 0])circle(r=w/2);
+        translate([l, 0, 0]) linear_extrude(height=h, center=true) circle(r=w/2);
     } else {
         //strap body
         translate([l2/2, 0, 0]) cube(size=[l2, w, h], center=true);
@@ -70,7 +84,7 @@ module strapBody(long=true) {
     
 }
 
-module longStrap() {
+module longStrap(noLoop=false) {
     difference() {
         strapBody(true);
         
@@ -82,27 +96,68 @@ module longStrap() {
     }
     
     //strap bar loop
-    translate([-dia/2, 0, 0])
-        loop();
+    if (noLoop == false) {
+        translate([-dia/2, 0, 0])
+            loop();
+    }
+    
     
 }
 
-module shortStrap() {
+module longStrapPattern() {
+    longStrap();
+    
+    //add pattern
+    intersection() {
+        scale([1, 1, 5]) longStrap(noLoop=true);
+        resize([(l+w/2) + p_l_extra_x, (l+w/2) + p_l_extra_y, 0]) translate([p_l_off_x, -(l+w/2)/2 + p_l_off_y, border_height/2]) linear_extrude(height=h+border_height, center=true)
+            import("circuit-board.svg");
+    }
+    
+    //add border
+    difference() {
+        translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody();
+        translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody();
+    }
+    
+}
+
+module shortStrap(noLoop=false) {
     difference() {
         strapBody(false);
     }
     
-    //strap bar loop
-    translate([-dia/2, 0, 0])
-        loop();
-    
-    mirror([1, 0, 0])
-    translate([-dia-l2, 0, 0])
-    difference() {
-        loop(filamentDia);
-        cube(size=[dia*2, latchWidth+.5, dia+10], center=true);
-    }
+    //strap bar loops
+    if (noLoop==false) {
+        translate([-dia/2, 0, 0])
+            loop();
         
+        mirror([1, 0, 0])
+        translate([-dia-l2, 0, 0])
+        difference() {
+            loop(filamentDia);
+            cube(size=[dia*2, latchWidth+.5, dia+10], center=true);
+        }
+    }
+    
+        
+}
+
+module shortStrapPattern() {
+    shortStrap();
+    
+    //add pattern
+    intersection() {
+        scale([1, 1, 5]) shortStrap(noLoop=true);
+        resize([(l+w/2) + p_s_extra_x, (l+w/2) + p_s_extra_y, 0]) translate([p_s_off_x, -(l+w/2)/2 + p_s_off_y, border_height/2]) linear_extrude(height=h+border_height, center=true)
+            import("circuit-board.svg");
+    }
+    
+    //add border
+    difference() {
+        translate([0, 0, border_height/2]) resize([0, 0, h+border_height]) strapBody(long=false);
+        translate([-e, 0, h/2]) resize([(l+w/2)-1, w-2, 20]) strapBody(long=false);
+    }
 }
 
 module buckle() {
@@ -155,8 +210,8 @@ module latch() {
     
 }
 
-translate([30, 0, 0]) longStrap();
-translate([0, w*2, 0]) shortStrap();
+translate([30, 0, 0]) longStrapPattern();
+translate([0, w*2, 0]) shortStrapPattern();
 
 buckle();
 latch();
