@@ -114,10 +114,14 @@ module buckle() {
     
     //main body
     difference() {
-        cube(size=[side, side, h+3], center=true);
-        translate([0, 0, -curveR]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true); //curve
+        intersection() { //curved body top
+            cube(size=[side, side, h+3], center=true);
+            translate([0, 0, -curveR+curveH+1]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true);
+        }
+        translate([0, 0, -curveR]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true); //form bottom curve
+        
         cube(size=[w-2, w, 10], center=true); //center cutout
-        translate([-w/2, 0, 1+h/2]) cube(size=[2+e, latchWidth+.5, latchThick+e], center=true); //latch groove
+        translate([-w/2, 0, 1+h/2]) cube(size=[2+e, latchWidth+.5, latchThick+1], center=true); //latch groove
         rotate([90, 0, 0])
             cylinder(d=2, h=side+e, center=true); //bar hole
     }
@@ -130,7 +134,7 @@ module buckle() {
         translate([0, 1, 0]) rotate([90, 0, 0])
             cylinder(d=2, h=side+e, center=true); //axle hole
         rotate([90, 0, 0])
-            cylinder(d=1, h=side+e, center=true); //axle push-out hole
+            cylinder(d=1.5, h=side+e, center=true); //axle push-out hole
         cube(size=[w-2, w, 10], center=true); //center cutout
     }
 }
