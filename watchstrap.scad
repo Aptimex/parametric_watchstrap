@@ -1,12 +1,14 @@
 $fn = 32;
 e = 0.01;
 
-l = 130;
-l2 = 65;
+totalLen = 125;
 w = 18;
+l = totalLen-w;
+l2 = 65;
+
 h = 1;
 
-numHoles = 15;
+numHoles = 12;
 holeSpacing = 3;
 holeW = 2;
 holeL = 6;
@@ -29,6 +31,7 @@ p_l_off_y = -38;
 p_l_off_x = -51;
 p_l_len_y = 100;
 p_l_len_x = p_l_len_y;
+p_l_xTrim = 0; //adjust how far past/before the start of the holes the pattern can go (long strap only)
 
 //short strap patter offsets
 p_s_off_y = p_l_off_y;
@@ -109,18 +112,19 @@ module longStrap(noLoop=false) {
 
 module longStrapPattern() {
     longStrap();
+    patternLen = l-w/2-holesLen+holeSpacing+p_l_xTrim;
     
     if (pattern) {
         //add pattern
         intersection() {
             scale([1, 1, 5]) longStrap(noLoop=true);
+            //resize([l-holesLen,0,h*5]) strapBody(true);
+            translate([patternLen/2, 0, 0]) cube(size=[patternLen, w, h*5], center=true);
             translate([p_l_off_x, p_l_off_y-w/2, border_height/2]) resize([p_l_len_x, p_l_len_y, 0]) linear_extrude(height=h+border_height, center=true)
                 import("circuit-board.svg");
         }
-        //test pattern
-        //translate([p_l_off_x, p_l_off_y-w/2, border_height/2]) resize([p_l_len_x, p_l_len_y, 0]) linear_extrude(height=h+border_height, center=true)
-            //import("circuit-board.svg");
     }
+    //translate([patternLen/2, 0, 0]) cube(size=[patternLen, w, h*5], center=true);
     
     if (border) {
         //add border
@@ -143,11 +147,12 @@ module shortStrap(noLoop=false) {
         translate([-dia/2, 0, 0])
             loop();
         
+        //cutout for latch
         mirror([1, 0, 0])
         translate([-dia-l2, 0, 0])
         difference() {
             loop(filamentDia);
-            cube(size=[dia*2, latchWidth+.5, dia+10], center=true);
+            cube(size=[dia+2, latchWidth+.5, dia+10], center=true);
         }
     }
     
@@ -203,21 +208,28 @@ module buckle() {
     difference() {
         scale([2, 1, 1])
         rotate([90, 0, 0])
-            cylinder(d=2+2, h=side, center=true); //oblong holders
+            cylinder(d=filamentDia+2, h=side, center=true); //oblong holders
         translate([0, 1, 0]) rotate([90, 0, 0])
-            cylinder(d=2, h=side+e, center=true); //axle hole
+            cylinder(d=filamentDia, h=side+e, center=true); //axle hole
         rotate([90, 0, 0])
-            cylinder(d=1.5, h=side+e, center=true); //axle push-out hole
+            cylinder(d=filamentDia-.5, h=side+e, center=true); //axle push-out hole
         cube(size=[width-2, width, 10], center=true); //center cutout
+    }
+}
+
+module halfBuckle() {
+    difference() {
+        buckle();
+        translate([(w+filamentDia+2)/2, 0, 0]) cube(size=[w, w*2, w], center=true);
     }
 }
 
 module latch() {
     difference() {
         rotate([90, 0, 0])
-            cylinder(d=2.4+2, h=latchWidth, center=true); //loop
+            cylinder(d=2+.4 + 2, h=latchWidth, center=true); //loop
         rotate([90, 0, 0])
-            cylinder(d=2.4, h=latchWidth+e, center=true); //bar hole
+            cylinder(d=2+.4, h=latchWidth+e, center=true); //bar hole
     }
     
     difference() {
@@ -228,11 +240,30 @@ module latch() {
     
 }
 
-translate([30, 0, 0]) longStrapPattern();
-translate([0, w*2, 0]) shortStrapPattern();
+module retainer() {
+    extra = 0.6;
+    retainerThickness = 1.2;
+    retainerHeight = 9;
+    bandThickness = (border || pattern) ? h+border_height : h;
+    //echo(str("bandThickness", bandThickness));
+    
+    difference() {
+        cube(size=[bandThickness*2 + retainerThickness*2 + extra, w + retainerThickness*2 + extra, 9], center=true);
+        cube(size=[bandThickness*2 + extra, w + extra, retainerHeight+e], center=true);
+    }
+    
+}
 
-//buckle();
-//latch();
+translate([0, 1.5*w, 0]) longStrapPattern();
+//translate([0, 3*w, 0]) shortStrapPattern();
+
+translate([2*w, 0, 0]) {
+    //halfBuckle();
+    //buckle();
+    //latch();
+}
+
+//translate([3*w, 0, 0]) retainer();
 
 
 
