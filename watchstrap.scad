@@ -193,10 +193,11 @@ module buckle() {
     //main body
     difference() {
         intersection() { //curved body top
-            cube(size=[side, side, h+3], center=true);
+            cube(size=[side, side-2, h+3], center=true);
             translate([0, 0, -curveTopR+curveH+1]) rotate([90, 0, 0])  cylinder(r=curveTopR, h=side+e, center=true);
         }
         translate([0, 0, -curveR]) rotate([90, 0, 0])  cylinder(r=curveR, h=side+e, center=true); //form bottom curve
+        translate([0, 0, -curveR*3]) rotate([90, 0, 0])  cylinder(r=curveR*3+.5, h=width, center=true); //extra cutout in center curve
         
         cube(size=[width-2, width, 10], center=true); //center cutout
         translate([-width/2, 0, 1+h/2]) cube(size=[2+e, latchWidth+.5, latchThick+1], center=true); //latch groove
@@ -208,7 +209,7 @@ module buckle() {
     difference() {
         scale([2, 1, 1])
         rotate([90, 0, 0])
-            cylinder(d=filamentDia+2, h=side, center=true); //oblong holders
+            cylinder(d=filamentDia+2, h=side-2, center=true); //oblong holders
         translate([0, 1, 0]) rotate([90, 0, 0])
             cylinder(d=filamentDia, h=side+e, center=true); //axle hole
         rotate([90, 0, 0])
@@ -222,6 +223,16 @@ module halfBuckle() {
         buckle();
         translate([(w+filamentDia+2)/2, 0, 0]) cube(size=[w, w*2, w], center=true);
     }
+}
+
+module smallBuckle() {
+    difference() {
+        buckle();
+        translate([(w+filamentDia+6)/2, 0, 0]) cube(size=[w, w*2, w], center=true);
+    }
+    
+    //back bar
+    translate([6-1, 0, 1]) cube(size=[2, w+4, 2], center=true);
 }
 
 module latch() {
@@ -248,22 +259,24 @@ module retainer() {
     //echo(str("bandThickness", bandThickness));
     
     difference() {
-        cube(size=[bandThickness*2 + retainerThickness*2 + extra, w + retainerThickness*2 + extra, 9], center=true);
+        //cube(size=[bandThickness*2 + retainerThickness*2 + extra, w + retainerThickness*2 + extra, 9], center=true);
+        roundedcube_simple(size=[bandThickness*2 + retainerThickness*2 + extra, w + retainerThickness*2 + extra, 9], center=true, radius=.8);
         cube(size=[bandThickness*2 + extra, w + extra, retainerHeight+e], center=true);
     }
     
 }
 
 translate([0, 1.5*w, 0]) longStrapPattern();
-//translate([0, 3*w, 0]) shortStrapPattern();
+translate([0, 3*w, 0]) shortStrapPattern();
 
 translate([2*w, 0, 0]) {
     //halfBuckle();
+    smallBuckle();
     //buckle();
-    //latch();
+    latch();
 }
 
-//translate([3*w, 0, 0]) retainer();
+translate([3*w, 0, 0]) retainer();
 
 
 
@@ -277,4 +290,28 @@ module prism(l, w, h){
         points=[[0,0,0], [l,0,0], [l,w,0], [0,w,0], [0,w,h], [l,w,h]],
         faces=[[0,1,2,3],[5,4,3,2],[0,4,5,1],[0,3,4],[5,2,1]]
     );
+}
+
+//https://gist.github.com/groovenectar/292db1688b79efd6ce11
+module roundedcube_simple(size = [1, 1, 1], center = false, radius = 0.5) {
+	// If single value, convert to [x, y, z] vector
+	size = (size[0] == undef) ? [size, size, size] : size;
+
+	translate = (center == false) ?
+		[radius, radius, radius] :
+		[
+			radius - (size[0] / 2),
+			radius - (size[1] / 2),
+			radius - (size[2] / 2)
+	];
+
+	translate(v = translate)
+	minkowski() {
+		cube(size = [
+			size[0] - (radius * 2),
+			size[1] - (radius * 2),
+			size[2] - (radius * 2)
+		]);
+		sphere(r = radius);
+	}
 }
