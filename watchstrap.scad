@@ -7,6 +7,7 @@ strapFlatLen = longLen-strapWidth; //Allow space for curved end
 shortLen = 65;
 //Make this a multiple of your layer height
 strapThickness = 1.2;
+loopCutouts = true;
 
 /* [ Holes ] */
 numHoles = 12;
@@ -69,7 +70,7 @@ module loophole(innerDia) {
     cylinder(d=innerDia, h=strapWidth+e, center=true);
 }
 
-module loop(innerDia, cutout=true) {
+module loop(innerDia, cutout=loopCutouts) {
     difference() {
         union() {
             translate([0, 0, loopOD/2 - strapThickness/2]) rotate([90, 0, 0])
